@@ -104,62 +104,10 @@ display_items = [
     ("무위험수익률", fmt_p(rf_rate)),
 ]
 
-# 반응형 CSS Grid + 모바일 전용 축소
-grid_html = """
-<style>
-# 기본 PC 화면 설정
-.metric-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-.metric-card {
-    background-color: var(--secondary-background-color);
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.metric-title {
-    font-size: 13px;
-    color: var(--text-color);
-    opacity: 0.8;
-    margin-bottom: 5px;
-    word-break: keep-all;
-}
-.metric-value {
-    font-size: 22px;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-# 모바일 화면 전용 설정
-@media (max-width: 768px) {
-    .metric-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-    .metric-card {
-        padding: 8px 4px;
-    }
-    .metric-title {
-        font-size: 11px;
-        margin-bottom: 2px;
-    }
-    .metric-value {
-        font-size: 16px;
-    }
-}
-</style>
-<div class="metric-grid">
-"""
-
-for k, v in display_items:
-    grid_html += f'<div class="metric-card"><div class="metric-title">{k}</div><div class="metric-value">{v}</div></div>'
-
-grid_html += '</div>'
-st.markdown(grid_html, unsafe_allow_html=True)
+for i in range(0, len(display_items), 4):
+    cols = st.columns(4)
+    for col, (k, v) in zip(cols, display_items[i:i+4]):
+        col.metric(k, v)
 st.divider()
 
 # Section 3. 종목별 위험지표
