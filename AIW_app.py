@@ -40,10 +40,9 @@ st.markdown(f"**현재 설정된 기준일:** {selected_date.strftime('%Y-%m-%d'
 st.divider()
 
 # 펀드 개요
-st.subheader("📌 펀드 운용 개요")
+st.subheader("📌 펀드 운용 목표")
 st.info(
-    "본 시스템은 세투연 펀드 7기 펀드의 실시간 리스크 통제 및 포트폴리오 최적화를 위해 구축된 리스크 관리 대시보드입니다. "
-    "상단의 달력에서 날짜를 조절하여 과거 특정 시점의 리스크를 백테스트 할 수 있습니다."
+    "'벤치마크' 상회!!!."
 )
 st.markdown("<br>", unsafe_allow_html=True)
 
