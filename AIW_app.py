@@ -42,7 +42,7 @@ st.divider()
 # 펀드 개요
 st.subheader("📌 펀드 운용 목표")
 st.info(
-    "'벤치마크' 상회!!!."
+    "'벤치마크' 상회!!!"
 )
 st.markdown("<br>", unsafe_allow_html=True)
 
