@@ -85,29 +85,44 @@ st.divider()
 
 # Section 1. 종합현황
 st.subheader("1. 종합현황 및 요약")
-col1, col2 = st.columns(2)
+
+col1, col2, col3, col4 = st.columns(4) 
 col1.metric("현재 리스크 수준", overall_status)
 col2.metric("컴플라이언스 위반", "🟢 0 건" if pd.isna(violation_cnt) or violation_cnt == 0 else f"🚨 {violation_cnt} 건")
+port_w_ret = metrics.get("포트폴리오_주간수익률", np.nan)
+bm_w_ret = metrics.get("벤치마크_주간수익률", np.nan)
+alpha_w_ret = port_w_ret - bm_w_ret if pd.notna(port_w_ret) and pd.notna(bm_w_ret) else np.nan
+
+col3.metric("포트폴리오 주간 수익률", fmt_p(port_w_ret), delta=f"BM 대비 {fmt_p(alpha_w_ret)}", help="최근 5영업일 기준 누적 수익률입니다.")
+col4.metric("벤치마크 주간 수익률", fmt_p(bm_w_ret), help="KODEX 200의 최근 5영업일 누적 수익률입니다.")
 
 st.text_area("💬 주간 요약 코멘트", value="여기에 이번 주 시장 상황, 주요 지표 변화 원인, 그리고 향후 펀드 운용 계획 등을 자유롭게 작성하세요.", height=100)
 st.divider()
 
 # Section 2. 포트폴리오 위험 지표
 st.subheader("2. 포트폴리오 위험 지표")
+
+# 지표명, 값, 툴팁 설명 형태로 리스트 구성
 display_items = [
-    ("포트폴리오 베타", fmt_n(metrics.get("포트폴리오_베타"))), ("10일 VaR (95%)", fmt_p(metrics.get("10일VaR"))),
-    ("10일 ES (95%)", fmt_p(metrics.get("10일ES"))), ("트래킹 에러", fmt_p(metrics.get("트래킹에러"))),
-    ("표준편차(일간)", fmt_p(metrics.get("표준편차(일간)"))), ("표준편차(연환산)", fmt_p(metrics.get("표준편차(연환산)"))),
-    ("MDD", fmt_p(metrics.get("MDD"))), ("주간 MDD", fmt_p(metrics.get("주간MDD"))),
-    ("샤프 지수", fmt_n(metrics.get("샤프지수"))), ("소티노 지수", fmt_n(metrics.get("소티노지수"))),
-    ("주식 비중", fmt_p(metrics.get("주식비중"))), ("현금 비중", fmt_p(metrics.get("현금비중"))),
-    ("무위험수익률", fmt_p(rf_rate)),
+    ("포트폴리오 베타", fmt_n(metrics.get("포트폴리오_베타")), "시장(벤치마크)이 1% 움직일 때 우리 펀드가 반응하는 민감도입니다."), 
+    ("10일 VaR (95%)", fmt_p(metrics.get("10일VaR")), "확률적으로 향후 10일간 발생할 수 있는 '최대 예상 손실률'의 마지노선입니다."),
+    ("10일 ES (95%)", fmt_p(metrics.get("10일ES")), "VaR 마지노선이 뚫리는 최악의 5% 상황이 터졌을 때의 '평균 손실률'입니다."), 
+    ("트래킹 에러", fmt_p(metrics.get("트래킹에러")), "우리 펀드가 벤치마크(시장)의 궤적을 얼마나 벗어나 독자적으로 움직이는지 보여주는 수치입니다."),
+    ("표준편차(일간)", fmt_p(metrics.get("표준편차(일간)")), "하루 동안 펀드 수익률이 평균에서 위아래로 출렁이는 정도(변동성)입니다."), 
+    ("표준편차(연환산)", fmt_p(metrics.get("표준편차(연환산)")), "1년 동안 펀드 수익률이 위아래로 출렁일 것으로 예상되는 변동성입니다."),
+    ("MDD", fmt_p(metrics.get("MDD")), "과거 최고점 대비 최저점까지의 '최대 낙폭'으로 투자자가 겪을 수 있는 최악의 손실률입니다."), 
+    ("주간 MDD", fmt_p(metrics.get("주간MDD")), "주간 단위로 측정한 포트폴리오의 최대 낙폭입니다."),
+    ("샤프 지수", fmt_n(metrics.get("샤프지수")), "위험(변동성) 1단위를 감수할 때 얻는 '초과 수익률'로, 펀드의 가성비 지표입니다."), 
+    ("소티노 지수", fmt_n(metrics.get("소티노지수")), "투자자가 싫어하는 '하락' 변동성만 떼어내서 계산한 더 엄격한 가성비 지표입니다."),
+    ("주식 비중", fmt_p(metrics.get("주식비중")), "포트폴리오 내 주식 등 위험 자산이 차지하는 비중입니다."), 
+    ("현금 비중", fmt_p(metrics.get("현금비중")), "위기 대응을 위해 포트폴리오 내에 확보해둔 현금의 비중입니다."),
+    ("무위험수익률", fmt_p(rf_rate), "은행 예금이나 국채처럼 리스크 없이 얻을 수 있는 기본 수익률(Rf)입니다.")
 ]
 
 for i in range(0, len(display_items), 4):
     cols = st.columns(4)
-    for col, (k, v) in zip(cols, display_items[i:i+4]):
-        col.metric(k, v)
+    for col, (k, v, help_text) in zip(cols, display_items[i:i+4]):
+        col.metric(k, v, help=help_text)
 st.divider()
 
 # Section 3. 종목별 위험지표
