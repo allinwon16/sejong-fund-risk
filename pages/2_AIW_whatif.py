@@ -1,6 +1,6 @@
 # ==========================================
 # 파일명: AIW_whatif.py
-# 목적: 실시간 포트폴리오 시뮬레이터
+# 목적: 실시간 포트폴리오 시뮬레이터 및 스트레스 테스트
 # ==========================================
 import streamlit as st
 import pandas as pd
@@ -22,6 +22,14 @@ df_portfolio, returns_df, benchmark_returns, rf_rate = get_engine_data(target_da
 # 세션 상태 초기화
 if 'sim_df_portfolio' not in st.session_state: st.session_state.sim_df_portfolio = df_portfolio.copy()
 if 'sim_returns_df' not in st.session_state: st.session_state.sim_returns_df = returns_df.copy()
+
+# 스트레스 테스트 슬라이더 상태 초기화
+if 'm_shock' not in st.session_state: st.session_state.m_shock = 0
+if 's_shock' not in st.session_state: st.session_state.s_shock = 0
+
+def apply_stress_preset(market_val, semi_val):
+    st.session_state.m_shock = market_val
+    st.session_state.s_shock = semi_val
 
 # ==========================================
 # 1. 신규 종목 동적 편입
@@ -251,6 +259,128 @@ if initial_aum > 0:
                 st.success("🟢 현재 설정된 비중은 모든 펀드 운용 규정을 완벽하게 준수하고 있습니다.")
         else:
             st.info("💡 컴플라이언스 점검 데이터가 없습니다.")
+
+# ==========================================
+# 5. 매크로 스트레스 테스트 시뮬레이터 (MDD 정밀 타겟팅 적용)
+# ==========================================
+    st.divider()
+    st.subheader("3. 🌪️ 매크로 스트레스 테스트 (Macro Shock Simulator)")
+    st.caption("현재 시뮬레이터에 세팅된 비중을 바탕으로, 거시 경제 충격(KOSPI 폭락 등)이 발생했을 때의 펀드 피해 규모를 추정합니다. 종목별 현재 낙폭과 과거 MDD를 함께 고려하여 현실적인 리스크를 측정하세요.")
+
+    # 프리셋 버튼 UI
+    st.markdown("###### 💡 역사적 시나리오 빠른 적용 (버튼 클릭)")
+    bt1, bt2, bt3, bt4 = st.columns(4)
+    if bt1.button("🦠 코로나19 팬데믹 (-35%)", on_click=apply_stress_preset, args=(-35, -5), use_container_width=True): pass
+    if bt2.button("📉 2022 금리인상 쇼크 (-25%)", on_click=apply_stress_preset, args=(-25, -10), use_container_width=True): pass
+    if bt3.button("💥 블랙먼데이 급락 (-10%)", on_click=apply_stress_preset, args=(-10, 0), use_container_width=True): pass
+    if bt4.button("🔄 충격 초기화 (0%)", on_click=apply_stress_preset, args=(0, 0), use_container_width=True): pass
+
+    # 사용자 입력 슬라이더
+    col_s1, col_s2 = st.columns(2)
+    market_shock_pct = col_s1.slider(
+        "📉 KOSPI(시장) 하락 충격 (%)", 
+        min_value=-50, max_value=0, step=1, key='m_shock'
+    )
+    semi_shock_pct = col_s2.slider(
+        "💻 반도체 섹터 추가 충격 (%)", 
+        min_value=-30, max_value=0, step=1, key='s_shock'
+    )
+
+    # 스트레스 테스트 연산 엔진
+    m_shock_rate = market_shock_pct / 100.0
+    s_shock_rate = semi_shock_pct / 100.0
+
+    stress_data = []
+    total_shocked_value = 0
+
+    for i, r in df_sim.iterrows():
+        t = r['티커']
+        if t == 'CASH':
+            stress_data.append({
+                "종목명": "현금", "비중": r['비중'], "베타": 0.0, 
+                "과거 1년 MDD": 0.0, "현재 낙폭": 0.0, "추가 충격률": 0.0, 
+                "충격 후 총 낙폭": 0.0, "충격 후 평가액": r['평가금액']
+            })
+            total_shocked_value += r['평가금액']
+            continue
+            
+        ret = st.session_state.sim_returns_df.get(t)
+        if ret is not None and not ret.empty:
+            # 1. 과거 1년 최대 낙폭(MDD) 계산
+            cum_ret = (1 + ret).cumprod()
+            hist_mdd = ((cum_ret - cum_ret.cummax()) / cum_ret.cummax()).min()
+            
+            # 2. 고점 대비 현재 빠져있는 비율(Current Drawdown) 계산
+            cdd = (cum_ret.iloc[-1] - cum_ret.max()) / cum_ret.max() if cum_ret.max() > 0 else 0
+            
+            # 3. 베타 계산
+            cov = ret.cov(benchmark_returns)
+            var = benchmark_returns.var()
+            beta = cov / var if var != 0 else 1.0
+        else:
+            hist_mdd, cdd, beta = 0.0, 0.0, 1.0
+            
+        if t == '069500': beta = 1.0 
+        
+        # (시장충격 * 베타) + 섹터추가충격
+        expected_drop = beta * m_shock_rate 
+        if r['섹터'] == 'IT/반도체':
+            expected_drop += s_shock_rate 
+        expected_drop = max(expected_drop, -1.0) 
+        
+        # 4. 복리 연산: 현재 낙폭 상태에서 충격을 더 맞았을 때 '고점 대비 최종 낙폭'
+        total_estimated_drawdown = (1 + cdd) * (1 + expected_drop) - 1
+        
+        shocked_val = r['평가금액'] * (1 + expected_drop)
+        total_shocked_value += shocked_val
+        
+        stress_data.append({
+            "종목명": r['종목명'], 
+            "비중": r['비중'], 
+            "베타": beta, 
+            "과거 1년 MDD": hist_mdd,
+            "현재 낙폭": cdd, 
+            "추가 충격률": expected_drop, 
+            "충격 후 총 낙폭": total_estimated_drawdown,
+            "충격 후 평가액": shocked_val
+        })
+
+    # 전체 포트폴리오 충격 결과 출력
+    total_drop_pct = (total_shocked_value / initial_aum) - 1 if initial_aum > 0 else 0
+    st.markdown(f"#### 🚨 시나리오 발생 시 예상 결과: 포트폴리오 총자산 <span style='color:#ff4b4b;'>{total_drop_pct*100:.2f}% 증발</span>", unsafe_allow_html=True)
+
+# 데이터 프레임 UI 포맷팅
+    stress_df = pd.DataFrame(stress_data)
+    
+    def fmt_p(val): return f"{val*100:.2f}%" if pd.notna(val) else "0.00%"
+    def fmt_n(val): return f"{val:.2f}" if pd.notna(val) else "0.00"
+    def fmt_c(val): return f"{int(val):,} 원" if pd.notna(val) else "0 원"
+    
+    stress_disp = stress_df.copy()
+    
+    # 🚨 핵심 수정: 문자로 바꾸기 전에 '숫자(float)인 상태' 원본 데이터(stress_df)로 비교부터 먼저 합니다!
+    def format_total_dd(row):
+        val = row['충격 후 총 낙폭']
+        mdd = row['과거 1년 MDD']
+        if val == 0: return "0.00%"
+        if val <= mdd and mdd < 0:
+            return f"🔥 {val*100:.2f}% (MDD 갱신)"
+        return f"{val*100:.2f}%"
+
+    stress_disp['충격 후 총 낙폭'] = stress_df.apply(format_total_dd, axis=1)
+    
+    # 그 다음, 나머지 열들을 % 텍스트로 변환합니다
+    stress_disp['비중'] = stress_df['비중'].apply(fmt_p)
+    stress_disp['베타'] = stress_df['베타'].apply(fmt_n)
+    stress_disp['과거 1년 MDD'] = stress_df['과거 1년 MDD'].apply(fmt_p)
+    
+    # 아이콘 시각화도 원본 숫자(stress_df) 기준으로 판단하여 텍스트 덮어쓰기
+    stress_disp['현재 낙폭'] = stress_df['현재 낙폭'].apply(lambda x: f"🔴 {x*100:.1f}%" if x < -0.15 else f"{x*100:.1f}%")
+    stress_disp['추가 충격률'] = stress_df['추가 충격률'].apply(lambda x: f"📉 {x*100:.1f}%" if x < -0.10 else f"{x*100:.1f}%")
+    stress_disp['충격 후 평가액'] = stress_df['충격 후 평가액'].apply(fmt_c)
+    
+    st.dataframe(stress_disp, hide_index=True, use_container_width=True)
+    st.info("💡 **해석 팁:** [충격 후 총 낙폭]이 [과거 1년 MDD]보다 커질 경우 🔥 마크가 표시됩니다. 이는 해당 충격이 발생하면 이 주식이 과거 1년간 겪었던 최악의 폭락장을 뚫고 새로운 지하실을 파고 내려간다는 뜻입니다.")
 
 else:
     st.warning("⚠️ 포트폴리오 평가금액이 없습니다.")
