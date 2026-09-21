@@ -347,5 +347,3 @@ def get_engine_data(target_date_str):
     ui_placeholder.empty() # 연동 종료 후 프로그레스 바 숨김
     
     return df_port, ret_df, bm_ret, rf_rate
-    
-    return df_port, ret_df, bm_ret, rf_rate
