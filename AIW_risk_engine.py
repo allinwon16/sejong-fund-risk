@@ -213,6 +213,8 @@ def calculate_portfolio_risks(portfolio_df, returns_df, benchmark_returns, rf_ra
     port_var, port_es = calculate_var_es(port_std_daily)
     port_mdd, port_wmdd = calculate_mdd((1 + port_ret_series).cumprod()), calculate_weekly_mdd(port_ret_series)
     port_beta = calculate_portfolio_beta(portfolio_df, returns_df, benchmark_returns)
+    port_weekly_ret = (1 + port_ret_series.tail(5)).prod() - 1 if len(port_ret_series) >= 5 else np.nan
+    bm_weekly_ret = (1 + benchmark_returns.tail(5)).prod() - 1 if len(benchmark_returns) >= 5 else np.nan
 
     comp_results, vio_cnt = [], 0
     c = COMPLIANCE_RULES
@@ -268,6 +270,8 @@ def calculate_portfolio_risks(portfolio_df, returns_df, benchmark_returns, rf_ra
     
     return {
         "총수익률": tot_roi, "포트폴리오_베타": port_beta, "10일VaR": port_var, "10일ES": port_es,
+        "포트폴리오_주간수익률": port_weekly_ret, 
+        "벤치마크_주간수익률": bm_weekly_ret,
         "표준편차(일간)": port_std_daily, "표준편차(연환산)": port_std_daily * np.sqrt(252),
         "MDD": port_mdd, "주간MDD": port_wmdd, "트래킹에러": calculate_tracking_error(port_ret_series, benchmark_returns),
         "샤프지수": calculate_sharpe_ratio(port_ret_series, rf_rate), "소티노지수": calculate_sortino_ratio(port_ret_series, rf_rate),
@@ -341,5 +345,7 @@ def get_engine_data(target_date_str):
     p_bar.progress(1.0, text="데이터 연동 완료! 엔진 가동!")
     time.sleep(0.3)
     ui_placeholder.empty() # 연동 종료 후 프로그레스 바 숨김
+    
+    return df_port, ret_df, bm_ret, rf_rate
     
     return df_port, ret_df, bm_ret, rf_rate
