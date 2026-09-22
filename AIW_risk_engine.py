@@ -15,14 +15,14 @@ import streamlit as st
 # ==========================================
 
 PORTFOLIO = {
-    "CASH": {"name": "현금", "quantity": 401364, "buy_price": 1, "sector": "현금"},
-    "069500": {"name": "KODEX 200", "quantity": 111, "buy_price": 112254, "sector": "벤치마크"},
-    "005930": {"name": "삼성전자", "quantity": 18, "buy_price": 269000, "sector": "IT/반도체"},
+    "CASH": {"name": "현금", "quantity": 114251, "buy_price": 1, "sector": "현금"},
+    "069500": {"name": "KODEX 200", "quantity": 111, "buy_price": 112255, "sector": "지수/벤치마크"},
+    "005930": {"name": "삼성전자", "quantity": 19, "buy_price": 268526, "sector": "IT/반도체"},
     "000660": {"name": "SK하이닉스", "quantity": 2, "buy_price": 1879000, "sector": "IT/반도체"},
-    "086790": {"name": "하나금융지주", "quantity": 24, "buy_price": 133900, "sector": "금융/지주"},
-    "049720": {"name": "고려신용정보", "quantity": 362, "buy_price": 9066, "sector": "금융/지주"},
     "411060": {"name": "ACE KRX금현물", "quantity": 124, "buy_price": 26565, "sector": "원자재"},
-    "138910": {"name": "KODEX 구리선물(H)", "quantity": 160, "buy_price": 10330, "sector": "원자재"},
+    "086790": {"name": "하나금융지주", "quantity": 24, "buy_price": 133900, "sector": "금융/지주"},
+    "071050": {"name": "한국금융지주", "quantity": 17, "buy_price": 187200, "sector": "금융/지주"},
+    "001450": {"name": "현대해상", "quantity": 33, "buy_price": 50300, "sector": "금융/보험"}
 }
 
 COMPLIANCE_RULES = {
