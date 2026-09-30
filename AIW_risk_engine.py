@@ -15,7 +15,7 @@ import streamlit as st
 # ==========================================
 
 PORTFOLIO = {
-    "CASH": {"name": "현금", "quantity": 114251, "buy_price": 1, "sector": "현금"},
+    "CASH": {"name": "현금", "quantity": 8700000, "buy_price": 1, "sector": "현금"},
     "069500": {"name": "KODEX 200", "quantity": 111, "buy_price": 112255, "sector": "지수/벤치마크"},
     "005930": {"name": "삼성전자", "quantity": 19, "buy_price": 268526, "sector": "IT/반도체"},
     "000660": {"name": "SK하이닉스", "quantity": 2, "buy_price": 1879000, "sector": "IT/반도체"},
