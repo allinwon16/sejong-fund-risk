@@ -15,14 +15,15 @@ import streamlit as st
 # ==========================================
 
 PORTFOLIO = {
-    "CASH": {"name": "현금", "quantity": 22881, "buy_price": 1, "sector": "현금"},
-    "069500": {"name": "KODEX 200", "quantity": 111, "buy_price": 112255, "sector": "지수/벤치마크"},
-    "005930": {"name": "삼성전자", "quantity": 38, "buy_price": 268763, "sector": "IT/반도체"},
+    "CASH": {"name": "현금", "quantity": 3028569, "buy_price": 1, "sector": "현금"},
+    "069500": {"name": "KODEX 200", "quantity": 121, "buy_price": 112255, "sector": "지수/벤치마크"},
+    "005930": {"name": "삼성전자", "quantity": 30, "buy_price": 268763, "sector": "IT/반도체"},
+    "005935": {"name": "삼성전자우", "quantity": 17, "buy_price": 173600, "sector": "IT/반도체"},
     "000660": {"name": "SK하이닉스", "quantity": 4, "buy_price": 1830500, "sector": "IT/반도체"},
     "411060": {"name": "ACE KRX금현물", "quantity": 124, "buy_price": 26565, "sector": "원자재"},
     "086790": {"name": "하나금융지주", "quantity": 24, "buy_price": 133900, "sector": "금융/지주"},
-    "071050": {"name": "한국금융지주", "quantity": 17, "buy_price": 187200, "sector": "금융/지주"},
-    "001450": {"name": "현대해상", "quantity": 33, "buy_price": 50300, "sector": "금융/보험"}
+    "071050": {"name": "한국금융지주", "quantity": 8, "buy_price": 187200, "sector": "금융/지주"},
+    "028670": {"name": "팬오션", "quantity": 494, "buy_price": 7341, "sector": "해상"}
 }
 
 COMPLIANCE_RULES = {
