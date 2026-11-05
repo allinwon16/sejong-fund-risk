@@ -86,17 +86,19 @@ st.divider()
 # Section 1. 종합현황
 st.subheader("1. 종합현황 및 요약")
 
+# 포트폴리오 총액 연산
+total_aum = df_portfolio['평가금액'].sum()
+
 col1, col2, col3, col4 = st.columns(4) 
-col1.metric("현재 리스크 수준", overall_status)
-col2.metric("컴플라이언스 위반", "🟢 0 건" if pd.isna(violation_cnt) or violation_cnt == 0 else f"🚨 {violation_cnt} 건")
+col1.metric("포트폴리오 총액", f"{int(total_aum):,} 원")
+col2.metric("현재 리스크 수준", overall_status)
+col3.metric("컴플라이언스 위반", "🟢 0 건" if pd.isna(violation_cnt) or violation_cnt == 0 else f"🚨 {violation_cnt} 건")
+
 port_w_ret = metrics.get("포트폴리오_주간수익률", np.nan)
 bm_w_ret = metrics.get("벤치마크_주간수익률", np.nan)
 alpha_w_ret = port_w_ret - bm_w_ret if pd.notna(port_w_ret) and pd.notna(bm_w_ret) else np.nan
 
-col3.metric("포트폴리오 주간 수익률", fmt_p(port_w_ret), delta=f"BM 대비 {fmt_p(alpha_w_ret)}", help="최근 5영업일 기준 누적 수익률입니다.")
-col4.metric("벤치마크 주간 수익률", fmt_p(bm_w_ret), help="KODEX 200의 최근 5영업일 누적 수익률입니다.")
-
-st.text_area("💬 주간 요약 코멘트", value="여기에 이번 주 시장 상황, 주요 지표 변화 원인, 그리고 향후 펀드 운용 계획 등을 자유롭게 작성하세요.", height=100)
+col4.metric("포트폴리오 주간 수익률", fmt_p(port_w_ret), delta=f"BM 대비 {fmt_p(alpha_w_ret)}", help="최근 5영업일 기준 누적 수익률입니다.")
 st.divider()
 
 # Section 2. 포트폴리오 위험 지표
