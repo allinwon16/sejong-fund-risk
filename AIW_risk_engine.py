@@ -22,6 +22,7 @@ PORTFOLIO = {
     "000660": {"name": "SK하이닉스", "quantity": 4, "buy_price": 1830500, "sector": "IT/반도체"},
     "006400": {"name": "삼성SDI", "quantity": 6, "buy_price": 545000, "sector": "IT/전자장비"},
     "032940": {"name": "원익", "quantity": 1382, "buy_price": 6994, "sector": "건강관리/의료기기"},
+    "114800": {"name": "KODEX 인버스", "quantity": 0, "buy_price": 1310, "sector": "지수/인버스"},
 }
 
 COMPLIANCE_RULES = {
